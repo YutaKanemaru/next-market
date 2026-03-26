@@ -18,8 +18,7 @@ export async function POST(request) {
                     .setProtectedHeader({ alg: "HS256" })
                     .setExpirationTime("2h")
                     .sign(secretKey);
-                console.log("Generated JWT token:", token);
-                return NextResponse.json({message: 'User logged in successfully!'});
+                return NextResponse.json({message: 'User logged in successfully!',token: token});
             } else {
                 return NextResponse.json({message: 'Invalid email or password.'}, {status: 401});
             }   

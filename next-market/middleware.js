@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 export async function middleware(request) {
-    const token = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InJvdWcwN2VAZ21haWwuY29tIiwiZXhwIjoxNzc0MTc4ODM2fQ.3rRCSHPh-c4HUlfhq9WfnnFXLBeAE9xf-vQyjO3fIFg"
-    //const token = request.headers.get("Authorization")?.split(" ")[1];
+        const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
