@@ -1,17 +1,15 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import useAuth from "../../utils/useAuth";
+import Image from "next/image";
 
-const CreateItem = () => {
+const DeleteItem = ({ params }) => {
+    const { id } = use(params);
     const [formData, setFormData] = useState({
-        title: "",
-        price: "",
-        description: "",
         image: "",
         email: ""
     });
-
+    
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prevData) => ({
@@ -21,34 +19,39 @@ const CreateItem = () => {
     };
 
     const router = useRouter();
-    const loginUserEmail = useAuth();
 
     useEffect(() => {
-        if (!loginUserEmail) return;
-        setFormData((prevData) => ({
-            ...prevData,
-            email: loginUserEmail
-        }));
-    }, [loginUserEmail]);
+        const getSingleImage = async (id) => {
+            const response = await fetch(`http://localhost:3000/api/item/readsingle/${id}`, { cache: "no-store" });
+            const jsonData = await response.json();
+            const singleItem = jsonData.singleItem;
+            setFormData({
+                title: singleItem.title,
+                price: singleItem.price,
+                description: singleItem.description,
+                image: singleItem.image,
+                email: singleItem.email
+            });
+        };
+        getSingleImage(id);
+    }, [id]);
+
+        
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const requestBody = {
-                ...formData,
-                email: loginUserEmail
-            };
-            const response = await fetch("http://localhost:3000/api/item/create", {
-                method: "POST",
+            const response = await fetch(`http://localhost:3000/api/item/delete/${id}`, {
+                method: "DELETE",
                 headers: {
                     "accept": "application/json",
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${localStorage.getItem("token")}`
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify(formData)
             });
             if (response.ok) {
-                console.log("Item created successfully");
+                console.log("Item Deleted successfully");
                 // Reset form or redirect to another page
                 setFormData({
                     title: "",
@@ -58,32 +61,31 @@ const CreateItem = () => {
                     email: ""
                 });
                 const jsonData = await response.json();
-                alert(jsonData);
+                alert(jsonData.message);
                 router.push("/"); // Redirect to the home page
                 router.refresh(); // Refresh the page to show the new item
 
             } else {
-                console.error("Error creating item");
+                console.error("Error updating item");
             }
         } catch (error) {
             console.error("Error:", error);
         }
     };
-    if(loginUserEmail) {
+
     return (
         <div>
-            <h1>Create Item Page</h1>
-            {/* Form for creating an item will go here */}
+            <h1>Delete Item Page</h1>
+            {/* Form for updating an item will go here */}
             <form onSubmit={handleSubmit}>
                 <input type="text" placeholder="Title" name="title" value={formData.title} onChange={handleChange} required />
                 <input type="number" placeholder="Price" name="price" value={formData.price} onChange={handleChange} required />
                 <textarea placeholder="Description" name="description" rows={14} value={formData.description} onChange={handleChange} required></textarea>
                 <input type="text" placeholder="Image URL" name="image" value={formData.image} onChange={handleChange} required />
-                <button type="submit">Create Item</button>
+                <button type="submit">Delete Item</button>
             </form>
         </div>
     );
 }
-}   
 
-export default CreateItem;
+export default DeleteItem;
